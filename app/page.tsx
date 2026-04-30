@@ -1,64 +1,113 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useState } from "react";
+
+type Joke = {
+  setup: string;
+  punchline: string;
+};
 
 export default function Home() {
+  const [joke, setJoke] = useState<Joke | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadJoke = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(
+        "https://official-joke-api.appspot.com/jokes/random"
+      );
+      if (!response.ok) {
+        throw new Error("Failed to load a joke.");
+      }
+      const data = (await response.json()) as Joke;
+      setJoke(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unexpected error.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadJoke();
+  }, []);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="min-h-screen">
+      <main className="mx-auto w-full max-w-6xl px-6 py-16">
+        <header className="flex flex-col gap-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[var(--muted)]">
+            Microfrontends Lab
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+          <div className="flex flex-wrap items-end justify-between gap-6">
+            <div className="flex flex-col gap-3">
+              <h1 className="text-4xl font-semibold text-[var(--text)] sm:text-5xl">
+                Joke Stream
+              </h1>
+              <p className="max-w-2xl text-base text-[var(--muted)] sm:text-lg">
+                A steady feed of one-liners and punchlines. Reload to keep the
+                team smiling.
+              </p>
+            </div>
+            <div className="rounded-full border border-white/10 bg-[var(--panel-2)] px-4 py-2 text-xs uppercase tracking-[0.2em] text-[var(--accent)]">
+              Port 3002
+            </div>
+          </div>
+        </header>
+
+        <section className="mt-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="rounded-2xl border border-white/10 bg-[var(--panel)] p-8 shadow-[0_20px_60px_rgba(0,0,0,0.45)]">
+            <div className="flex items-center justify-between text-xs uppercase tracking-[0.3em] text-[var(--muted)]">
+              <span>Live Joke</span>
+              <span>{loading ? "Loading" : "Ready"}</span>
+            </div>
+
+            {error ? (
+              <p className="mt-8 text-sm text-red-400">{error}</p>
+            ) : (
+              <div className="mt-8 space-y-6">
+                <p className="text-2xl font-semibold text-[var(--text)]">
+                  {joke?.setup ?? ""}
+                </p>
+                <p className="text-lg text-[var(--accent)]">
+                  {joke?.punchline ?? ""}
+                </p>
+              </div>
+            )}
+
+            <button
+              className="mt-10 w-full rounded-xl border border-white/10 bg-[var(--accent)]/10 px-4 py-3 text-sm font-semibold text-[var(--accent)] hover:border-[var(--accent)]/40"
+              onClick={loadJoke}
+              disabled={loading}
+            >
+              {loading ? "Fetching..." : "Give me another"}
+            </button>
+          </div>
+
+          <div className="flex flex-col gap-4">
+            <div className="rounded-2xl border border-white/10 bg-[var(--panel)] p-6">
+              <h2 className="text-lg font-semibold text-[var(--text)]">
+                How it works
+              </h2>
+              <p className="mt-2 text-sm text-[var(--muted)]">
+                Powered by the Official Joke API. Each refresh fetches a new
+                random entry with setup and punchline.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-white/10 bg-[var(--panel-2)] p-6">
+              <p className="text-xs uppercase tracking-[0.3em] text-[var(--muted)]">
+                Soundbite
+              </p>
+              <p className="mt-3 text-sm text-[var(--text)]">
+                Keep this microfrontend running in a sidebar to lighten the day.
+              </p>
+            </div>
+          </div>
+        </section>
       </main>
     </div>
   );
