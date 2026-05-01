@@ -53,7 +53,7 @@ export default function Home() {
               </p>
             </div>
             <div className="rounded-full border border-white/10 bg-[var(--panel-2)] px-4 py-2 text-xs uppercase tracking-[0.2em] text-[var(--accent)]">
-              Port 3002
+              Micro APP URL : https://jokesappmf.vercel.app/jokes
             </div>
           </div>
         </header>
